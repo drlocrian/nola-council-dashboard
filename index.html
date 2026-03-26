@@ -95,18 +95,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F5F6F
   <select id="sel-race" class="demo-select" onchange="applyFilters()">
     <option value="">Any Race</option>
     <option value="White">White</option>
-    <option value="Black">Black / African American</option>
-    <option value="Hispanic">Hispanic/Latino</option>
+    <option value="Black or African American">Black or African American</option>
+    <option value="Hispanic or Latino/a">Hispanic or Latino/a</option>
     <option value="Asian">Asian</option>
-    <option value="Native American">Native American</option>
-    <option value="Prefer not to say">Prefer not to say</option>
+    <option value="American Indian or Alaska Native">American Indian or Alaska Native</option>
+    <option value="Multiracial">Multiracial</option>
+    <option value="Other">Other</option>
   </select>
 
   <select id="sel-gender" class="demo-select" onchange="applyFilters()">
     <option value="">Any Gender</option>
     <option value="Woman">Woman</option>
     <option value="Man">Man</option>
-    <option value="Other not listed here (please specify)">Other</option>
+    <option value="Other not listed here (please specify)">Other not listed here (please specify)</option>
+    <option value="I prefer not to answer">I prefer not to answer</option>
   </select>
 
   <select id="sel-housing" class="demo-select" onchange="applyFilters()">
@@ -273,14 +275,18 @@ function rn(keep){
     dc = C[sd] || '#4E79A7';
   }
 
-  // 2. FORK IN THE ROAD: Is a demographic filter active?
+  // FORK IN THE ROAD: Is a demographic filter active?
   if (typeof globalDemoFilter !== 'undefined' && globalDemoFilter) {
     var f = globalDemoFilter;
     
     // --> DISPLAY THE DEMOGRAPHIC LABEL <--
     var desc = [];
-    if(f.race) desc.push(f.race === 'Black' ? 'Black / African American' : (f.race === 'Hispanic' ? 'Hispanic / Latino' : f.race));
-    if(f.gender) desc.push(f.gender);
+    if(f.race) desc.push(f.race);
+    if(f.gender) {
+        if (f.gender === 'Other not listed here (please specify)') desc.push('Other Gender');
+        else if (f.gender === 'I prefer not to answer') desc.push('Prefer not to answer');
+        else desc.push(f.gender);
+    }
     if(f.housing) desc.push(f.housing === 'rent' ? 'Renter' : (f.housing === 'own' ? 'Homeowner' : f.housing));
     if(f.age) desc.push('Age ' + f.age);
     if(f.income) desc.push('Income ' + f.income);
@@ -291,7 +297,7 @@ function rn(keep){
       h += '</div>';
     }
     
-    // Filter the raw respondent data (RR) using ultra-robust Contains logic
+    // Filter the raw respondent data (RR)
     var filtered = RR.filter(function(r){
       if (sd && r[1] !== sd) return false;
       if (sn && r[0] !== sn) return false;
@@ -305,7 +311,8 @@ function rn(keep){
         if (filterType === 'gender') {
           if (v === 'woman') return d === 'w' || d === 'f' || d.includes('woman') || d.includes('women') || d.includes('female');
           if (v === 'man') return d === 'm' || /\bman\b|\bmen\b|^m$/.test(d);
-          if (v === 'non-binary') return d === 'nb' || d === 'n' || d.includes('non-binary') || d.includes('nonbinary');
+          if (v.includes('other not listed')) return d === 'o' || d.includes('other');
+          if (v.includes('prefer not to answer')) return d === 'p' || d === 'o' || d.includes('prefer');
         }
         
         if (filterType === 'housing') {
@@ -315,12 +322,12 @@ function rn(keep){
         
         if (filterType === 'race') {
           if (v === 'white') return d === 'wh' || d === 'w' || d.includes('white');
-          if (v === 'black') return d === 'bl' || d === 'b' || d.includes('black') || d.includes('african');
-          if (v === 'hispanic') return d === '' || d === 'hi' || d === 'hl' || d === 'hs' || d === 'h' || d.includes('hispanic') || d.includes('latino');
-          if (v === 'prefer not to say') return d === 'ot' || d === 'pn' || d === 'p' || d === 'pr' || d.includes('prefer');
-          if (v === 'native american') return d === 'na' || d === 'mu' || d === 'n' || d === 'am' || d.includes('native') || d.includes('indigenous');
+          if (v.includes('black')) return d === 'bl' || d === 'b' || d.includes('black') || d.includes('african');
+          if (v.includes('hispanic')) return d === '' || d === 'hi' || d === 'hl' || d === 'hs' || d === 'h' || d.includes('hispanic') || d.includes('latino') || d.includes('latina');
+          if (v.includes('american indian')) return d === 'na' || d === 'mu' || d === 'n' || d === 'am' || d.includes('native') || d.includes('indigenous') || d.includes('indian') || d.includes('alaska');
           if (v === 'asian') return d === 'as' || d === 'a' || d.includes('asian');
-          if (v === 'other') return d === 'ot' || d.includes('other');
+          if (v === 'multiracial') return d === 'mu' || d.includes('multi') || d.includes('mixed');
+          if (v === 'other') return d === 'ot' || d === 'pn' || d === 'p' || d === 'pr' || d.includes('other') || d.includes('prefer');
         }
         
         if (filterType === 'age') {
@@ -363,7 +370,6 @@ function rn(keep){
         if(ci >= 0 && ci < CA.length){
           var info = CA[ci];
           
-          // ---> FIX 1: Normalize the long budget question string <---
           var qName = info[1];
           if (qName.includes("budget reflects its priorities")) {
             qName = "Which areas should be the City's top budget priorities?";
@@ -401,7 +407,6 @@ function rn(keep){
       qs.forEach(function(q){
         h+='<div class="qb"><div class="qt">'+q.question+'</div>';
         
-        // ---> FIX 2: Safely check for the long string if the short string fails <---
         var resp = {};
         if (nd && nd.q) {
           resp = nd.q[q.question] || (q.question === "Which areas should be the City's top budget priorities?" ? nd.q[longBudgetQ] : undefined) || {};
