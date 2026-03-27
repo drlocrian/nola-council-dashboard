@@ -111,10 +111,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F5F6F
     <option value="I prefer not to answer">I prefer not to answer</option>
   </select>
 
-  <select id="sel-housing" class="demo-select" onchange="applyFilters()">
+ <select id="sel-housing" class="demo-select" onchange="applyFilters()">
     <option value="">Any Housing</option>
-    <option value="rent">Renter</option>
-    <option value="own">Homeowner</option>
+    <option value="I am currently in an institutional setting like a jail, prison, or hospital">I am currently in an institutional setting like a jail, prison, or hospital</option>
+    <option value="I am currently unhoused, living in a shelter, or living in another non-permanent place like a car or tent">I am currently unhoused, living in a shelter, or living in another non-permanent place like a car or tent</option>
+    <option value="I am in a long-term care facility (such as a nursing home)">I am in a long-term care facility (such as a nursing home)</option>
+    <option value="I live in a dorm">I live in a dorm</option>
+    <option value="I live with someone but do not pay rent">I live with someone but do not pay rent</option>
+    <option value="I own my home/apartment">I own my home/apartment</option>
+    <option value="I prefer not to answer">I prefer not to answer</option>
+    <option value="I rent a room or living space in a house/apartment">I rent a room or living space in a house/apartment</option>
+    <option value="I rent my home/apartment">I rent my home/apartment</option>
+    <option value="Other (please specify)">Other (please specify)</option>
   </select>
 
   <select id="sel-age" class="demo-select" onchange="applyFilters()">
@@ -287,7 +295,19 @@ function rn(keep){
         else if (f.gender === 'I prefer not to answer') desc.push('Prefer not to answer');
         else desc.push(f.gender);
     }
-    if(f.housing) desc.push(f.housing === 'rent' ? 'Renter' : (f.housing === 'own' ? 'Homeowner' : f.housing));
+    if(f.housing) {
+        // Shorten the display name so it doesn't break the UI banner
+        if (f.housing.includes('own my home')) desc.push('Homeowner');
+        else if (f.housing.includes('rent my home')) desc.push('Renter');
+        else if (f.housing.includes('rent a room')) desc.push('Rents a Room');
+        else if (f.housing.includes('live with someone')) desc.push('Lives Rent-Free');
+        else if (f.housing.includes('unhoused')) desc.push('Unhoused');
+        else if (f.housing.includes('dorm')) desc.push('Dorm');
+        else if (f.housing.includes('long-term care')) desc.push('Long-Term Care');
+        else if (f.housing.includes('institutional')) desc.push('Institutional Setting');
+        else if (f.housing.includes('prefer not to answer')) desc.push('Prefer not to answer');
+        else desc.push('Other Housing');
+    }
     if(f.age) desc.push('Age ' + f.age);
     if(f.income) desc.push('Income ' + f.income);
     
@@ -316,8 +336,16 @@ function rn(keep){
         }
         
         if (filterType === 'housing') {
-          if (v === 'rent') return d === 'r' || d.includes('rent');
-          if (v === 'own') return d === 'o' || d.includes('own');
+          if (v.includes('own my home')) return d === 'o' || d === 'own' || d.includes('own');
+          if (v.includes('rent my home')) return d === 'r' || d === 'rent' || d.includes('rent my home');
+          if (v.includes('rent a room')) return d === 'r' || d === 'rent' || d.includes('rent a room');
+          if (v.includes('do not pay rent') || v.includes('live with someone')) return d === 'free' || d === 'f' || d.includes('do not pay rent') || d.includes('live with someone');
+          if (v.includes('unhoused')) return d === 'unhoused' || d === 'u' || d.includes('unhoused');
+          if (v.includes('institutional')) return d === 'oth' || d.includes('institutional');
+          if (v.includes('long-term care')) return d === 'oth' || d.includes('long-term');
+          if (v.includes('dorm')) return d === 'oth' || d.includes('dorm');
+          if (v.includes('prefer not to answer')) return d === 'oth' || d === 'p' || d === 'pn' || d.includes('prefer');
+          if (v.includes('other')) return d === 'oth' || d === 'o' || d.includes('other');
         }
         
         if (filterType === 'race') {
