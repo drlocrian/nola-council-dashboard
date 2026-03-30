@@ -172,8 +172,8 @@ var C={A:'#4E79A7',B:'#6BAF8E',C:'#D4A843',D:'#8B9FC5',E:'#5BA4B5'};
 var mp,dL={},nL={},sd=null,sn=null,ct=null;
 
 mp=L.map('map',{center:[29.95,-89.97],zoom:11});
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{
-  attribution:'Esri',maxZoom:18}).addTo(mp);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{
+  attribution:'Esri',maxZoom:16}).addTo(mp);
 
 D.an.forEach(function(n){
   if(!n.p||!n.p.length)return;
